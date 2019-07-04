@@ -50,18 +50,19 @@ var margin = {top: 40, right: 40, bottom: 40, left: 40},
     var items, connectors;
 
 var categories = [
-  {arabic: "وقف إطلاق النار", english: "Ceasefire", color: d3.rgb(165,46,104,1), position: 40, bool: true},
-  {arabic: "Prenegotiation", english: "Prenegotiation", color: d3.rgb(150,68,135,1), position: 70, bool: true},
-  {arabic: "الأسماء-الجزئية", english: "Substantive-Partial", color: d3.rgb(133,91,169,1), position: 100, bool: true},
-  {arabic: "تطبيق", english: "Implementation", color: d3.rgb(117,113,199,1), position: 130, bool: true},
-  {arabic: "حدث", english: "Event", color: d3.rgb(45,45,45,1), position: 160, bool: true},
+  {arabic: "وقف إطلاق النار", english: "Ceasefire", color: "#FFE41C", position: 40, bool: true},
+  {arabic: "Prenegotiation", english: "Prenegotiation", color: "#FDB32F", position: 70, bool: true},
+  {arabic: "الأسماء-الجزئية", english: "Substantive-Partial", color: "#ED7953", position: 100, bool: true},
+  {arabic: "تطبيق", english: "Implementation", color: "#9C169E", position: 130, bool: true},
+  {arabic: "حدث", english: "Event", color: "steelblue", position: 160, bool: true},
   //{arabic: "مذكرة", english: "Comment", color: d3.rgb(254,127,45,1), position: 190, bool: true}
 ]
 
 var languages = {
   "english": {
-    "header": "PA-X: Yemen Agreements and Conflicts overview",
-    "desc": 'Timeline of the Yemen Conflict, scroll or click to choose <span style="color: #FCCA46; font-weight: bold">Prenegotiation</span>, <span style="color: #FE7F2D ; font-weight: bold">Substantive-Partial</span>, <span style="color: #579C87; font-weight: bold">Ceasefire</span>, <span style="color: #A1C181; font-weight: bold">Implementation</span>, or <strong>Events</strong>. Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database.',
+    "header": "PA-X: Yemen Timeline: Conflict Events & Peace and Transition Documents",
+    "desc": 'Accounts of conflicts are often contested. Below we set out a timeline of the Yemeni Conflict, and the main peace and transition documents todate. Scroll or click to choose <span style="color: #FFE41C; font-weight: bold">Ceasefires</span>, <span style="color: #FDB32F; font-weight: bold">Prenegotiations</span>, <span style="color: #ED7953; font-weight: bold">Substantive-Partial Frameworks</span>, <span style="color: #9C169E; font-weight: bold">Implementations</span>, or <span style="color: steelblue; font-weight: bold">Events</span>. Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database.',
+    //"desc": 'Accounts of conflicts are often contested. Below we set out a timeline of the Yemeni Conflict, and the main peace and transition documents todate. Scroll or click to choose <span style="color: #FCCA46; font-weight: bold">Agreements (national)</span>, <span style="color: #FE7F2D ; font-weight: bold">Agreements (local)</span>, <span style="color: #579C87; font-weight: bold">Events (political)</span>, or <span style="color: #A1C181; font-weight: bold">Events (violent)</span>. Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database.',
     "itemHeadline": "Headline",
     "itemText": "Text"
   },
@@ -134,7 +135,7 @@ d3.csv("en-ar-tab.csv", function(error, data) {
   
   //construct overview + connectirs
   barcode = svg.append("g").attr("class","barcode")//.attr("transform","translate(0,50)")
-  timespan = barcode.append("rect").attr("class","timespan").attr("x",0).attr("width",205).attr("pointer-events","none").attr("fill",d3.rgb(0,0,0,.05))
+  timespan = barcode.append("rect").attr("class","timespan").attr("x",0).attr("width",205).attr("pointer-events","none").attr("fill",d3.rgb(255,255,255,.05))
 
   
   function draw(data) {
@@ -144,7 +145,7 @@ d3.csv("en-ar-tab.csv", function(error, data) {
     .append("div").attr("class",d=>"year-"+d.Year).attr("id", d=> "item-"+d.id)
     .append("div").attr("class",d => (d["Agreement/Event"] == "Event") ? "Event" : d.Stage )
     .style("background",d => {
-      var col = categories.find(x => x.english == d.type).color
+      var col = d3.rgb(categories.find(x => x.english == d.type).color)
       var opacity = (d["Agreement/Event"] == "Event") ? .2 : 0.4
       return d3.rgb(col.r,col.g,col.b,opacity)
     })
@@ -225,13 +226,13 @@ function resizeTimeSpan() {
   .attr("stroke-width",5)
   .attr("stroke-color","white")
   .on("mousemove",(d,i) => {
-    commentCircle.attr("transform","translate("+d.position+","+(d3.event.pageY - $(document).scrollTop())+")").style("opacity",1)
+    //commentCircle.attr("transform","translate("+d.position+","+(d3.event.pageY - $(document).scrollTop())+")").style("opacity",1)
   })
   .on("mouseout",_=>{
-    commentCircle.style("opacity",0)
+    //commentCircle.style("opacity",0)
   })
 
-  var commentCircle = svg.append("g").attr("class","commentCircle").style("opacity",0).attr("pointer-events","none").attr("transform","translate(0,0)")
+  /*var commentCircle = svg.append("g").attr("class","commentCircle").style("opacity",0).attr("pointer-events","none").attr("transform","translate(0,0)")
   commentCircle.append("circle").attr("fill","white").attr("stroke","black").attr("r",12)//.attr("cx",commentLine.attr("x1"))
   var addComment = commentCircle.append("text").text("+").style("font-size",20).style("font-weight","bold").attr("text-anchor","middle").attr("y",5)
 
@@ -244,7 +245,7 @@ function resizeTimeSpan() {
 
   d3.select("#button-reset").on("click",_=>{
     d3.select("#form").transition().duration(100).style("opacity",0) 
-  })
+  })*/
 
 
   
