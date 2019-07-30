@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="438px" height="449px" viewBox="0 0 438 449" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 51.1 (57501) - http://www.bohemiancoding.com/sketch -->
+    <title>arrow-up-solid</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="arrow-up-solid" transform="translate(0.281250, 0.000000)" fill="#FFFFFF" fill-rule="nonzero">
+            <path d="M29.9,258.5 L7.7,236.3 C-1.7,226.9 -1.7,211.7 7.7,202.4 L202,8 C211.4,-1.4 226.6,-1.4 235.9,8 L430.2,202.3 C439.6,211.7 439.6,226.9 430.2,236.2 L408,258.4 C398.5,267.9 383,267.7 373.7,258 L259,137.6 L259,425 C259,438.3 248.3,449 235,449 L203,449 C189.7,449 179,438.3 179,425 L179,137.6 L64.2,258.1 C54.9,267.9 39.4,268.1 29.9,258.5 Z" id="Shape"></path>
+        </g>
+    </g>
+</svg>

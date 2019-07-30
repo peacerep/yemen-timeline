@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap&subset=arabic" rel="stylesheet">
+<!--<link rel="stylesheet" href="style.css">-->
+</head>
+<div class="container-fluid">
+  <div class="row no-gutters">
+    <div class="col-lg-4 col-sm-6" id="circles"></div>
+    <div class="col-lg-6 col-sm-6 offset-lg-4 offset-sm-6" id="boxes">
+      <div class="intro">
+        <span><a href="index.html?lang=english" class="english">english</a> / <a href="index.html?lang=arabic" class="arabic">عربى</a></span>
+        <h1></h1>
+        <p></p>
+      </div>
+    </div>
+    <a href="#"><i id="up" class="arrow"></i></a>
+    <a href="#"><i id="down" class="arrow"></i></a>
+  </div>
+  </div>
+</div>
+<div id="tooltip"></div>
+
+<style>
+
+  body { 
+    background-color: #181818;
+    font-family: 'Karla', sans-serif;
+    color: #F4F4F4;
+  }
+
+  body.arabic {
+    text-align: right;
+  }
+
+  .arrow {
+    display: block;
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    opacity: .8;
+    background-color: #181818;
+    background-size: 20px 20px, cover;
+  }
+
+  #up.arrow {
+    top: 20px;
+    background-image: url("img/up.svg");
+    background-repeat: no-repeat;
+    background-position:  5px 5px;
+  }
+
+  #down.arrow {
+    bottom: 20px;
+    background-image: url("img/down.svg");
+    background-repeat: no-repeat;
+    background-position:  5px 5px;
+  }
+
+  /* intro */
+  .intro {
+    padding: 100px 50px;
+    text-align: center;
+  }
+
+  .intro a {
+    color: #fff;
+  }
+
+  .intro h1 {
+    font-weight: bold;
+  }
+
+  .intro span {
+    font-size: 0.8em
+  }
+
+  /* circles */
+  #circles {
+    height: 100%;
+    position: fixed;
+  }
+
+  rect.timespan {
+    fill: rgba(255,255,255,0.2);
+  }
+
+  #tooltip {
+    position: fixed;
+    padding: 2px 5px;
+    overflow: hidden;
+    max-width: 250px;
+    line-height: 1.1em;
+    opacity: 0;
+    border-radius: 4px;
+    -webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+    box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+  }
+
+  .years text {
+    fill: #F4F4F4;
+    font-size: .7em;
+    text-anchor: middle;
+  }
+
+
+  /*toggles*/
+  .toggles {color: #F4F4F4;}
+  .custom-control-label, .custom-control-label {cursor: pointer;}
+  .custom-checkbox.local, .custom-checkbox.conflict  {margin-left: 5px;}
+  .custom-control-label:before{background-color:black;}
+  .custom-checkbox .custom-control-input:checked~.national.custom-control-label::before   {background-color: #B5B867;}
+  .custom-checkbox .custom-control-input:checked~.local.custom-control-label::before      {background-color: #A23961;}
+  .custom-checkbox .custom-control-input:checked~.political.custom-control-label::before  {background-color: #3E5A83;}
+  .custom-checkbox .custom-control-input:checked~.conflict.custom-control-label::before   {background-color: #AC5A1F;}
+
+  /*boxes*/
+  #boxes h4 {font-weight: 700}
+  .inner {padding: 20px; border-top: 1px solid #181818;}
+  .showDate {padding-left: 20px; margin-top: 100px; display: block;}
+  .showDate.first {padding-left: 20px; margin-top: 0px; display: block;}
+  .hideDate {margin-top: 0px; display: none;}
+  a:link {color: white; text-decoration: underline}
+
+  .national .inner  {background-color: #B5B867;}
+  .local .inner     {background-color: #A23961;}
+  .political .inner {background-color: #3E5A83;}
+  .conflict .inner  {background-color: #AC5A1F;}
+  .stage {
+    border-bottom: 1px dotted rgba(244,244,244,.4);
+    padding: 0 20px 10px 20px;
+    font-family: monospace;
+    font-size: .9em;
+    background-repeat: no-repeat;
+    background-size: 15px;
+    background-position: left
+  }
+
+  .arabic .stage {
+    background-position: right
+  }
+  p.stage.ceasefire           {background-image: url("img/ceasefire.svg");}
+  p.stage.prenegotiation      {background-image: url("img/prenegotiation.svg");}
+  p.stage.substantive-partial {background-image: url("img/substantive-partial.svg");}
+  p.stage.implementation      {background-image: url("img/implementation.svg");}
+
+</style>
+
+<script>
+  'use strict';
+
+
+
+  //initialize some global elements / functions
+  var lineGenerator = d3.line().curve(d3.curveBasis);
+  var parseTime = d3.timeParse("%d/%m/%Y")
+  var formatTime = d3.timeFormat("%d/%m/%Y");
+  var data;
+  var categories = [
+    {english_cat: "Agreements",english_subcat: "national",arabic_cat: "اتفاقات",arabic_subcat: "وطنية", color: d3.rgb("#B5B867"), show: true},
+    {english_cat: "Agreements",english_subcat: "local",arabic_cat: "اتفاقات",arabic_subcat: "محلية", color: d3.rgb("#A23961"), show: true},
+    {english_cat: "Events",english_subcat: "political",arabic_cat: "أحداث",arabic_subcat: "سياسية", color: d3.rgb("#3E5A83"), show: true},
+    {english_cat: "Events",english_subcat: "conflict",arabic_cat: "أحداث",arabic_subcat: "عنيفة", color: d3.rgb("#AC5A1F"), show: true},
+  ]
+  var measure = {
+    "width": d3.select("#circles").node().getBoundingClientRect().width,
+    "height": d3.select("#circles").node().getBoundingClientRect().height,
+    "left": 70,
+    "top": 25,
+    "bottom": 50,
+    "ratio": 0.7, //ratio of #circles div reserved for lines
+    "curve": 0.7 //ratio where connectors begin to bend
+  }
+  var language = setLanguage()
+  var svg = d3.select("#circles").append("svg").attr("width",measure.width).attr("height",measure.height);
+
+
+  //load data, parse and then init functions
+  d3.csv("en-ar-demodata.csv", function(error, d) {
+    if (error) throw error;
+    data = parse(d);
+    var scales = createScales();
+    drawLines(scales); 
+    var beeswarm = computeBeeswarm(scales);
+    drawIntro();
+    var boxes = drawBoxes(scales);
+    drawYears(scales);
+    var connectors = drawConnectors(scales);
+    var circles = drawCircles(beeswarm, scales);
+    drawToggles(["Agreements","Events"], circles, connectors, boxes);
+    drawArrows()
+  })
+
+
+  //draw boxes on right side
+  function drawBoxes(scales) {
+    var stages = [
+      {"english": "Ceasefire", "arabic": "وقف إطلاق النار"},
+      {"english": "Prenegotiation", "arabic": "Prenegotiation"}, //TODO: translate prenegotiation and verify all translations
+      {"english": "Substantive-Partial", "arabic": "الأسماء-الجزئية"},
+      {"english": "Implementation", "arabic": "تطبيق"}
+    ]
+
+    var boxes = {}
+    boxes.div = d3.select("#boxes")
+      .selectAll("div.outer")
+      .data(data)
+      .enter()
+      .append("div")
+      .attr("id",d=>"box-"+d.id)
+      .style("display",d=>categories.find(x=>x.english_subcat == d.type).show ? " block" : " none")
+      .attr("class",d=>"outer "+d.type+" year-"+d.Year)
+  
+    //add date, if same date, hide and loose margin
+    boxes.date = boxes.div.append("span") //TODO: make global and check on every toggle
+    .attr("class",(d,i)=> dateClass(d,i))
+    .text(d=>{
+      var start = formatTime(d.start)
+      var end = formatTime(d.end)
+      return (start == end) ? start : start + " – " + end
+    })
+
+    //build box
+    var box = boxes.div.append("div").attr("class","inner")
+    var stage = box.append("p")
+      .attr("class",d=>(d.Stage == "") ? "d-none" : "stage "+d.Stage.toLowerCase())
+      .text(d=> {
+        var str
+        if(d.Stage !== "") {
+          str = stages.find(x=>x.english == d.Stage)[language]
+        } else {
+          str = ""
+        }
+        return str
+      })
+    box.append("h4")
+      .text(d => (language == "arabic") ? d["Headline Arabic"] : d["Headline"])
+    box.append("p")
+      .html(d => {
+        var paragraph = (language == "arabic") ? d["Text Arabic"] : d["Text"]
+        return linkify(paragraph)
+      })
+      return boxes;
+  }
+
+  //show headline and text in correct language
+  function drawIntro(){
+    d3.select(".intro h1").html(_=>{
+      var str
+      if(language == "arabic") {
+        str = "PA-X: نظرة عامة على الاتفاقات والصراعات اليمنية"
+      } else {
+        str = "PA-X: Yemen Timeline: Conflict Events & Peace and Transition Documents"
+      }
+    return str
+   })
+
+    d3.select(".intro p").html(_=> {
+      var str
+      if(language == "arabic") {
+        str = "الشهادات والآراء حول الصراعات غالباً ييتم الاختلاف عليها .وادناه ، نورد تسلسلاً زمنياً للصراع في اليمن واهم وثائق التحول والسلام . انظر ادناه واضغط لتختار ، وقف إطلاق النار ، ماقيل التفاوض، ومضامين  اطارات الاتفاقات الحزبية ، التنفيذ، أو الأحداث. ويمكن الحصول على النصوص الكاملة باستخدام الروابط. ويتم الوصول على التسلسل الزمني من PA -X قاعدة بيانات اتفاقات السلام"
+      } else {
+        str = "Accounts of conflicts are often contested. Below we set out a timeline of the Yemeni Conflict, and the main peace and transition documents todate. Scroll or click to choose Agreements (national),  Agreements (local), Events (political), or Events (violent). Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database."
+      }
+      return str
+    })
+  }
+
+
+  //recursive function to check whether a) the prior date is visible and b) check for same dates
+  function dateClass(d,i) {
+    function walkBack(steps) {
+      if(typeof data[i-steps] !== "undefined") {
+        if(categories.find(x=>x.english_subcat == data[i-steps].type).show) {
+          return (formatTime(data[i].start) == formatTime(data[i-steps].start)) ? "hideDate" : "showDate"
+        } else {
+          return walkBack(steps+1)
+        }
+      } else {
+        return "showDate first"
+      }
+    }
+    return "date "+walkBack(1)
+  }
+
+
+  //add id, parse start and end time and then sort by start
+  function parse(d) {
+    d.forEach((e,i)=>{
+      e.id = i;
+      e.start = parseTime(e.Day+"/"+e.Month+"/"+e.Year)
+      e.end = parseTime(e["End Day"]+"/"+e["End Month"]+"/"+e["End Year"])
+      e.type = (e.Event !== "") ? e.Event : e.Agreement
+    })
+    d.sort((a,b)=>a.start-b.start)
+    return d;
+  }
+
+
+  //add x and y to data
+  function computeBeeswarm(scales) {
+    var simulation = d3.forceSimulation(data)
+    .force("x", d3.forceX(d => scales.x(d.type)).strength(1))
+    .force("y", d3.forceY(d => scales.y(d.start)).strength(5))
+    .force("collide", d3.forceCollide(5))
+    .stop();
+    for (var i = 0; i < 60; ++i) simulation.tick();
+    return data;
+  }
+
+
+  //draw lines on the left
+  function drawLines(scales) {
+    var start = .5
+    var smooth1 = 6
+    var smooth2 = 6.5
+
+    var g = svg.append("g")
+      .attr("class","lines")
+      .selectAll("line")
+      .data(Object.values(categories))
+      .enter()
+
+    g.append("path")
+      .attr("class",d=>d.english_subcat)
+      .attr("stroke",d=>scales.color(d.english_subcat))
+      .attr("stroke-width",2)
+      .attr("fill","transparent")
+      .attr("d",(d,i)=> {
+        var step = getStep(categories)
+        var line = []
+        if(i % 2 == 0) {
+          line.push([scales.x(d.english_subcat),measure.top*start])
+          line.push([scales.x(d.english_subcat),measure.top*smooth1])
+        } else {
+          line.push([scales.x(d.english_subcat)-step+2,measure.top*start])
+          line.push([scales.x(d.english_subcat)-step+2,measure.top*smooth1])
+        }
+        line.push([scales.x(d.english_subcat),measure.top*smooth1])
+        line.push([scales.x(d.english_subcat),measure.top*smooth2])
+        return lineGenerator(line)
+      })
+
+    g.append("line")
+      .attr("class",d=>d.english_subcat)
+      .attr("x1",d=>scales.x(d.english_subcat))
+      .attr("x2",d=>scales.x(d.english_subcat))
+      .attr("y1",measure.top*smooth2) 
+      .attr("y2",measure.height-measure.bottom)
+      .attr("stroke",d=>scales.color(d.english_subcat))
+      .attr("stroke-width",2)
+      .attr("fill","transparent")
+  }
+
+  //show years next to lines & show timespan
+  function drawYears(scales) {
+    //dont leave out years with no events
+    var years = []
+    var extent = d3.extent(data, function(d) {return +d.Year})
+    for(var  i = extent[0]; i <= extent[1]; i++) years.push(i)
+  
+    svg.append("g")
+      .attr("class","years")
+      .selectAll("text")
+      .data(years)
+      .enter()
+      .append("text")
+        .text(d => d)
+        .attr("y",d => scales.y(parseTime("01/01/"+d)) + 7)
+        .attr("x",20)
+        .on("click",function(d){
+          var year = d;
+          
+          //if this year does not exist, go to the first appearace of a later year
+          var element = []
+          while(!element.length) {
+            element = $(".year-"+year).first();
+            year++
+          }    
+      
+          $('html, body').animate({
+            scrollTop: (element.offset().top - 50) //TODO SCROLL TO YEAR
+          }, 1000);
+        })
+    
+  //draw element to highlight what time is covered on screen
+    var timespan = svg.append("rect")
+      .attr("class","timespan")
+      .attr("x",0)
+      .attr("width",measure.width*measure.ratio) // todo
+      .attr("pointer-events","none")
+    resizeTimeSpan()
+    function resizeTimeSpan() {
+      var arr = []
+      $("#boxes .outer").each(function(){
+        var box = $(this)
+        //if box is in view and is not hidden
+        if(box.inView() && (box.css("display") !== "none")) {
+          //find the boxes date, only take the first segment, remove spaces, parse it and add it to the array of visible dates
+          arr.push(parseTime($(this).find(".date")[0].innerHTML.split("–")[0].replace(/\s+/g, '')))
+        } 
+      })
+      arr.sort(function(a,b){return a-b})
+      var start = scales.y(arr[0]) - 20
+      var stop =  scales.y(arr[arr.length-1]) - start + 20;
+      timespan.transition().duration(100).attr("y",start).attr("height",stop)
+    }
+    $(window).scroll(function () {
+      resizeTimeSpan()
+    })
+  }
+  
+
+  //draw connection lines 
+  function drawConnectors(scales) {
+    var connectors = svg.append("g")
+      .attr("class","connectors")
+      .selectAll("path")
+      .data(data)
+      .enter()
+      .append("path")
+      .attr("fill","transparent")
+      .attr("stroke",d=>scales.color(d.type))
+      .style("stroke-opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  .5 : 0)
+      moveConnectors(connectors);
+      $(window).scroll(function () {
+        moveConnectors(connectors);
+      })
+      return connectors;
+  }
+
+  //move connection lines to correct start/end
+  function moveConnectors(connectors) {
+    function constructPath (d) {
+      var element = $('#box-'+d.id)
+      var y = (element.offset().top - $(window).scrollTop() + (element.height() / 2))
+      var start = [d.x, d.y]
+      var smooth1 = [measure.width*measure.curve, d.y]
+      var smooth2 = [measure.width*(measure.curve+.1), d.y]
+      var smooth3 = [element.offset().left-70, y]
+      var target = [element.offset().left, y]
+      return lineGenerator([start, smooth1, smooth2, smooth3, target])
+    }
+    connectors.attr("d",d=>constructPath(d))
+  }
+
+  //draw checkboxes and toggle category visibility
+  function drawToggles(cats,circles, connectors, boxes) {
+    var container = svg.append("g")
+      .attr("class","toggles")
+      .selectAll("foreignObject")
+      .data(cats)
+      .enter()
+      .append('foreignObject')
+        .attr("x", (d,i) => (i == 0) ? measure.left + 10 : measure.left + getStep()*2 + 10)
+        .attr("y", measure.top)
+        .attr("width", 1)
+        .attr("height", 1)
+        .attr("overflow", "visible")
+        .append("xhtml:div")
+    container.append("h5").text(d=>{
+      var str
+      if (language == "arabic") {
+        str = (d == "Agreements") ? "اتفاقات" : "أحداث"
+      } else {
+        str = d
+      }
+      return str;
+    })
+    var div = container.append("form").selectAll("div")
+      .data(d=>categories.filter(x=>x.english_cat == d))
+      .enter()
+      .append("div")
+      .attr("class",d=>"custom-control custom-checkbox "+d.english_subcat)
+    div.append("input")
+      .attr("id",d=>d.english_subcat)
+      .attr("class","custom-control-input")
+      .attr("type","checkbox")
+      .property("checked",d=>d.show)
+      .on("change",d=>toggle(d,circles,connectors, boxes))
+    div.append("label")
+      .text(d=>d[language+"_subcat"])
+      .attr("for",d=>d.english_subcat)
+      .attr("class",d=>d.english_subcat+" custom-control-label")    
+  }
+
+  //toggle visibility of circles, connectors and boxes when checkbox is clicked
+  function toggle(category,circles,connectors, boxes) {
+    category.show = !category.show
+
+    boxes.div.style("display",d=> categories.find(x=>x.english_subcat == d.type).show ?  "block" : "none")
+    boxes.date.attr("class",(d,i)=> dateClass(d,i))
+    moveConnectors(connectors)
+    connectors.style("stroke-opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  .5 : 0)
+    circles.style("opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  1 : 0.2)
+  }
+
+  //draw circles according to their date and category
+  function drawCircles(beeswarm, scales){
+    var circles = svg.append("g").attr("class","circles").selectAll("circle").data(beeswarm).enter().append("circle")
+    .attr("cx",d => d.x)
+    .attr("class",d => d.type)
+    .attr("cy",d => d.y)
+    .attr("fill",d => scales.color(d.type))
+    .attr("r", 4)
+    .attr("stroke-width", .5)
+    .attr("stroke", d3.rgb(0,0,0,.5))
+    .style("opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  1 : 0.2)
+    .on("mouseover",function(d){
+      d3.select(this).transition().duration(100).attr("r",7)
+      d3.select("#tooltip")
+        .style("opacity",1)
+        .style("background-color",scales.color(d.type))
+        .html((language == "arabic") ? d["Headline Arabic"] : d["Headline"])
+        .style("top",(d.y- 10)+"px")
+        .style("left",(d.x+30)+"px")
+    })
+    .on("mouseout",function(){
+      d3.select(this).transition().duration(100).attr("r",4)
+      d3.select("#tooltip").style("opacity",0)
+    })
+    .on("click",function(d){
+      $('html, body').animate({
+        scrollTop: $("#box-"+d.id).offset().top - d.y + ($("#box-"+d.id).height() / 2)
+      }, 750);
+    })
+    return circles;
+  }
+  
+  //bit overkill to write a function for this, but here we go
+  var getStep = function(){
+    return ((measure.width * measure.ratio - measure.left) / categories.length + 1)
+  }
+
+  //convert links in actual links
+  function linkify(text) {
+    var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    return text.replace(urlRegex, function(url) {
+      return '<a target="_blank" href="' + url + '">' + url + '</a>';
+    });
+  }
+
+  //create scale for line/bubble position and colors
+  function createScales() {
+    var scales = {}
+    var domain = categories.map(x=>x.english_subcat)
+    var range = []
+    var step = getStep()
+    for(var i = measure.left; i <= measure.width * measure.ratio; i=i+step) {
+      range.push(i)
+    }
+    scales.y = d3.scaleTime()
+      .domain(d3.extent(data,d=>d.start))
+      .range([measure.top*7,measure.height-measure.bottom])
+    scales.x = d3.scaleOrdinal()
+      .domain(domain)
+      .range(range)
+    scales.color = d3.scaleOrdinal()
+      .domain(domain)
+      .range(categories.map(function(d){return d.color}))
+    return scales;
+  }
+
+  //check url for ?lang=arabic, set language accordingly
+  function setLanguage() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var lang = (urlParams.get('lang') == "arabic") ? "arabic" : "english"
+    d3.select("body").attr("class",lang)
+    //var direction = (lang == "arabic") ? "rtl" : "ltr"
+    //d3.select("html").attr("dir",direction)
+    return lang
+  }
+
+  function drawArrows() {
+    var height = window.innerHeight
+    
+    $("#down").click(function(){
+      $('html, body').animate({
+        scrollTop: $(window).scrollTop() + height
+      }, 500);
+    })
+    
+    $("#up").click(function(){
+      $('html, body').animate({
+        scrollTop: $(window).scrollTop() - height
+      }, 500);
+    })
+    
+     $(".arrow").css("left", $("#circles").width() + $("#boxes").width() / 2)
+  }
+
+  //expand jquery functionality to check whether box is in view or not
+  $.fn.inView = function(){
+    var win = $(window);
+    var scrollPosition = win.scrollTop();
+    var visibleArea = win.scrollTop() + win.height();
+    var objEndPos = ($(this).offset().top + $(this).outerHeight());
+    return(visibleArea >= objEndPos && scrollPosition <= objEndPos ? true : false)
+  };
+</script>
