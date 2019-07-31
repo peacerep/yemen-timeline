@@ -163,8 +163,8 @@
   var data;
   var categories = [
     {english_cat: "Agreements",english_subcat: "national",arabic_cat: "اتفاقات",arabic_subcat: "وطنية", color: d3.rgb("#B5B867"), show: true},
-    {english_cat: "Agreements",english_subcat: "local",arabic_cat: "اتفاقات",arabic_subcat: "محلية", color: d3.rgb("#A23961"), show: true},
-    {english_cat: "Events",english_subcat: "political",arabic_cat: "أحداث",arabic_subcat: "سياسية", color: d3.rgb("#3E5A83"), show: true},
+    {english_cat: "Agreements",english_subcat: "local",arabic_cat: "اتفاقات",arabic_subcat: "محلية", color: d3.rgb("#A23961"), show: false},
+    {english_cat: "Events",english_subcat: "political",arabic_cat: "أحداث",arabic_subcat: "سياسية", color: d3.rgb("#3E5A83"), show: false},
     {english_cat: "Events",english_subcat: "conflict",arabic_cat: "أحداث",arabic_subcat: "عنيفة", color: d3.rgb("#AC5A1F"), show: true},
   ]
   var measure = {
@@ -217,7 +217,7 @@
       .attr("class",d=>"outer "+d.type+" year-"+d.Year)
   
     //add date, if same date, hide and loose margin
-    boxes.date = boxes.div.append("span") //TODO: make global and check on every toggle
+    boxes.date = boxes.div.append("span")
     .attr("class",(d,i)=> dateClass(d,i))
     .text(d=>{
       var start = formatTime(d.start)
@@ -384,7 +384,7 @@
           }    
       
           $('html, body').animate({
-            scrollTop: (element.offset().top - 50) //TODO SCROLL TO YEAR
+            scrollTop: (element.offset().top - 50) 
           }, 1000);
         })
     
@@ -392,27 +392,34 @@
     var timespan = svg.append("rect")
       .attr("class","timespan")
       .attr("x",0)
-      .attr("width",measure.width*measure.ratio) // todo
+      .attr("width",measure.width*measure.ratio)
       .attr("pointer-events","none")
     resizeTimeSpan()
     function resizeTimeSpan() {
-      var arr = []
-      $("#boxes .outer").each(function(){
-        var box = $(this)
-        //if box is in view and is not hidden
-        if(box.inView() && (box.css("display") !== "none")) {
-          //find the boxes date, only take the first segment, remove spaces, parse it and add it to the array of visible dates
-          arr.push(parseTime($(this).find(".date")[0].innerHTML.split("–")[0].replace(/\s+/g, '')))
-        } 
-      })
-      arr.sort(function(a,b){return a-b})
-      var start = scales.y(arr[0]) - 20
-      var stop =  scales.y(arr[arr.length-1]) - start + 20;
-      timespan.transition().duration(100).attr("y",start).attr("height",stop)
+      var arr = getVisible();
+
+      if(arr.length) {
+        //find the first and last boxes date, only take the first segment, remove spaces, parse it and add it to the array of visible dates
+        var start = scales.y(parseTime(arr[0].find(".date")[0].innerHTML.split("–")[0].replace(/\s+/g, ''))) - 20
+        var stop =  scales.y(parseTime(arr[arr.length-1].find(".date")[0].innerHTML.split("–")[0].replace(/\s+/g, ''))) - start + 20;
+        timespan.transition().duration(100).attr("y",start).attr("height",stop)
+      }
+      
     }
     $(window).scroll(function () {
       resizeTimeSpan()
     })
+  }
+
+
+  //get array of visible boxes;
+  function getVisible() {
+    var arr = []
+    $("#boxes .outer").each(function(){
+        var box = $(this)
+        if(box.inView() && (box.css("display") !== "none")) arr.push($(this))
+      })
+    return arr
   }
   
 
@@ -577,21 +584,43 @@
   }
 
   function drawArrows() {
-    var height = window.innerHeight
+  /* //get previous or next visibile box
+   function upDown(direction) {
+    var arr = getVisible()
+    if(arr.length) {
+      if(direction == "up") {
+        return walk(arr[0])
+      } else {
+        return walk(arr[arr.length-1])
+      }
+    }
+    //recursive function to walk up and down, recursion occurs when box is not visibleArea
+    function walk(start) {
+      var startID = start.attr("id").split("-")[1]
+      var id = (direction == "up") ? startID-- : startID++
+      var target = $("#box-"+id)
+      if(typeof target !== undefined) {
+        if(target.css("display") == "block") {
+          return target
+        } else {
+          return walk(id)
+        }
+      } else {
+        return start
+      }
+    }
+   }*/
     
-    $("#down").click(function(){
+    $(".arrow").click(function(){ 
+      var distance = ($(this).attr("id") == "up") ? -1 : 1
+      distance = distance * 200
+
       $('html, body').animate({
-        scrollTop: $(window).scrollTop() + height
+        scrollTop: $(window).scrollTop() + distance
       }, 500);
     })
     
-    $("#up").click(function(){
-      $('html, body').animate({
-        scrollTop: $(window).scrollTop() - height
-      }, 500);
-    })
-    
-     $(".arrow").css("left", $("#circles").width() + $("#boxes").width() / 2)
+    $(".arrow").css("left", $("#circles").width() + $("#boxes").width() / 2)
   }
 
   //expand jquery functionality to check whether box is in view or not
