@@ -1,183 +1,404 @@
 <!DOCTYPE html>
 <head>
   <meta charset="utf-8">
-
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-<link href="https://fonts.googleapis.com/css?family=Amiri:400,700|Karla:400,700&display=swap&subset=arabic" rel="stylesheet">
-
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/solid.css" integrity="sha384-QokYePQSOwpBDuhlHOsX0ymF6R/vLk/UQVz3WHa6wygxI5oGTmDTv8wahFOSspdm" crossorigin="anonymous">
-<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/fontawesome.css" integrity="sha384-vd1e11sR28tEK9YANUtpIOdjGW14pS87bUBuOIoBILVWLFnS+MCX9T6MMf0VdPGq" crossorigin="anonymous">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap&subset=arabic" rel="stylesheet">
 </head>
 <div class="container-fluid">
-  <div class="row">
-    <div class="col-mid-4" id="overview"></div>
-    <div class="col-mid-6" id="timeline"><div class="intro"><p><a href="index-new.html?lang=english" class="english">english</a> / <a href="index-new.html?lang=arabic" class="arabic">عربى</a></p><h1>PA-X: Yemen Timeline: Conflict Events & Peace and Transition Documents</h1><p class="desc">Accounts of conflicts are often contested. Below we set out a timeline of the Yemeni Conflict, and the main peace and transition documents todate. Scroll or click to choose <span style="color: #FCCA46; font-weight: bold">Agreements (national)</span>, <span style="color: #FE7F2D ; font-weight: bold">Agreements (local)</span>, <span style="color: #579C87; font-weight: bold">Events (political)</span>, or <span style="color: #A1C181; font-weight: bold">Events (violent)</span>. Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database.</p></div>
-    <a href="#"><i id="previous" class="fas fa-arrow-alt-circle-up"></i></a>
-    <a href="#"><i id="next" class="fas fa-arrow-alt-circle-down"></i></a>
+  <div class="row no-gutters">
+    <div class="col-lg-4 col-sm-6" id="circles"></div>
+    <div class="col-lg-6 col-sm-6 offset-lg-4 offset-sm-6" id="boxes">
+      <div class="intro">
+        <span><a href="index.html?lang=english" class="english">english</a> / <a href="index.html?lang=arabic" class="arabic">عربى</a></span>
+        <h1></h1>
+        <p></p>
+      </div>
+    </div>
+    <a href="#"><i id="up" class="arrow"></i></a>
+    <a href="#"><i id="down" class="arrow"></i></a>
   </div>
   </div>
 </div>
 <div id="tooltip"></div>
 
-<div id="form">
-  <form>
-  <div class="form-group">
-    <input class="form-control" id="date" type="date" value="2011-08-19" id="example-date-input">
-  </div>
-  <div class="form-group">
-    <textarea class="form-control" id="exampleFormControlTextarea1" rows="2">Enter text</textarea>
-  </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
-  <input class="btn btn-secondary" id="button-reset" type="reset" value="Reset">
-</form>
-</div>
-
 <script>
-var urlParams = new URLSearchParams(window.location.search);
-var language = (urlParams.get('lang') == "arabic") ? "arabic" : "english"
-d3.select("body").attr("class",language)
+  'use strict';
 
-var margin = {top: 40, right: 40, bottom: 40, left: 40},
-    width = $("#overview").width()
-    height = $("#overview").height()
-    svg = d3.select("#overview").append("svg").attr("width",width).attr("height",height)
-    parseTime = d3.timeParse("%d/%m/%Y");
-    formatTime = d3.timeFormat("%Y-%m-%d");
-    var y, connector, line, timeline;
-    var items, connectors;
 
-var categories = [
-  {arabic: "وقف إطلاق النار", english: "Ceasefire", color: "#FFE41C", position: 40, bool: true},
-  {arabic: "Prenegotiation", english: "Prenegotiation", color: "#FDB32F", position: 70, bool: true},
-  {arabic: "الأسماء-الجزئية", english: "Substantive-Partial", color: "#ED7953", position: 100, bool: true},
-  {arabic: "تطبيق", english: "Implementation", color: "#9C169E", position: 130, bool: true},
-  {arabic: "حدث", english: "Event", color: "steelblue", position: 160, bool: true},
-  //{arabic: "مذكرة", english: "Comment", color: d3.rgb(254,127,45,1), position: 190, bool: true}
-]
 
-var languages = {
-  "english": {
-    "header": "PA-X: Yemen Timeline: Conflict Events & Peace and Transition Documents",
-    "desc": 'Accounts of conflicts are often contested. Below we set out a timeline of the Yemeni Conflict, and the main peace and transition documents todate. Scroll or click to choose <span style="color: #FFE41C; font-weight: bold">Ceasefires</span>, <span style="color: #FDB32F; font-weight: bold">Prenegotiations</span>, <span style="color: #ED7953; font-weight: bold">Substantive-Partial Frameworks</span>, <span style="color: #9C169E; font-weight: bold">Implementations</span>, or <span style="color: steelblue; font-weight: bold">Events</span>. Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database.',
-    //"desc": 'Accounts of conflicts are often contested. Below we set out a timeline of the Yemeni Conflict, and the main peace and transition documents todate. Scroll or click to choose <span style="color: #FCCA46; font-weight: bold">Agreements (national)</span>, <span style="color: #FE7F2D ; font-weight: bold">Agreements (local)</span>, <span style="color: #579C87; font-weight: bold">Events (political)</span>, or <span style="color: #A1C181; font-weight: bold">Events (violent)</span>. Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database.',
-    "itemHeadline": "Headline",
-    "itemText": "Text"
-  },
-  "arabic": {
-    "header": "PA-X: نظرة عامة على الاتفاقات والصراعات اليمنية",
-    "desc": 'الجدول الزمني للصراع في اليمن ، قم بالتمرير أو انقر فوق "اختيار سلطة التفاوض المسبق أو الجزئي أو وقف إطلاق النار أو التنفيذ أو الأحداث". يمكن الوصول إلى النص الكامل للاتفاقيات باستخدام الروابط. يعتمد الجدول الزمني على قاعدة بيانات اتفاق السلام PA-X.',
-    "itemHeadline": "Headline Arabic",
-    "itemText": "Text Arabic"
+  //initialize some global elements / functions
+  var lineGenerator = d3.line().curve(d3.curveBasis);
+  var parseTime = d3.timeParse("%d/%m/%Y")
+  var formatTime = d3.timeFormat("%d/%m/%Y");
+  var data;
+  var categories = [
+    {english_cat: "Agreements",english_subcat: "National",arabic_cat: "اتفاقات",arabic_subcat: "وطنية", color: d3.rgb("#B5B867"), show: true},
+    {english_cat: "Agreements",english_subcat: "Local",arabic_cat: "اتفاقات",arabic_subcat: "محلية", color: d3.rgb("#A23961"), show: false},
+    {english_cat: "Events",english_subcat: "Political",arabic_cat: "أحداث",arabic_subcat: "سياسية", color: d3.rgb("#3E5A83"), show: false},
+    {english_cat: "Events",english_subcat: "Conflict",arabic_cat: "أحداث",arabic_subcat: "عنيفة", color: d3.rgb("#AC5A1F"), show: true},
+  ]
+  var measure = {
+    "width": d3.select("#circles").node().getBoundingClientRect().width,
+    "height": d3.select("#circles").node().getBoundingClientRect().height,
+    "left": 70,
+    "top": 25,
+    "bottom": 50,
+    "ratio": 0.7, //ratio of #circles div reserved for lines
+    "curve": 0.7 //ratio where connectors begin to bend
   }
-}
+  var language = setLanguage()
+  var svg = d3.select("#circles").append("svg").attr("width",measure.width).attr("height",measure.height);
 
 
-$(".intro h1").html(languages[language].header)
-$(".intro p.desc").html(languages[language].desc)
-
-
-d3.csv("en-ar-tab.csv", function(error, data) {
-  if (error) throw error;
-  data = data.filter(d => d.Year !== "") // filter empty rows
-  data.sort(function(a,b) {return parseTime(a.Day+"/"+a.Month+"/"+a.Year) - parseTime(b.Day+"/"+b.Month+"/"+b.Year)})
-  data.forEach(function(d,i) {
-    d.id=i;
-    d.type = (d["Agreement/Event"] == "Event") ? "Event" : d.Stage 
+  //load data, parse and then init functions
+  d3.csv("en-ar-tab - rw final edits.csv", function(error, d) {
+    if (error) throw error;
+    data = parse(d.filter(x=>x.Year !== ""));
+    var scales = createScales();
+    drawLines(scales); 
+    var beeswarm = computeBeeswarm(scales);
+    drawIntro();
+    var boxes = drawBoxes(scales);
+    drawYears(scales);
+    var connectors = drawConnectors(scales);
+    var circles = drawCircles(beeswarm, scales);
+    drawToggles(["Agreements","Events"], circles, connectors, boxes);
+    drawArrows()
   })
 
-  //scales
-  y = d3.scaleTime()
-    .domain(d3.extent(data,function(d){return parseTime(d.Day+"/"+d.Month+"/"+d.Year)}))
-    .range([190,height-20])
-  x = d3.scaleOrdinal()
-    .domain(categories.map(function(d){return d.english}))
-    .range(categories.map(function(d){return d.position}))
-  color = d3.scaleOrdinal()
-    .domain(categories.map(function(d){return d.english}))
-    .range(categories.map(function(d){return d.color}))
 
+  //draw boxes on right side
+  function drawBoxes(scales) {
+    var stages = [
+      {"english": "Ceasefire", "arabic": "وقف إطلاق النار"},
+      {"english": "Prenegotiation", "arabic": "Prenegotiation"}, //TODO: translate prenegotiation and verify all translations
+      {"english": "Substantive-Partial", "arabic": "الأسماء-الجزئية"},
+      {"english": "Implementation", "arabic": "تطبيق"}
+    ]
 
-  var simulation = d3.forceSimulation(data)
-    .force("x", d3.forceX(d => x(d.type)).strength(1))
-    .force("y", d3.forceY(d => y(parseTime(d.Day+"/"+d.Month+"/"+d.Year))).strength(1))
-    .force("collide", d3.forceCollide(4))
-    .stop();
-    for (var i = 0; i < 60; ++i) simulation.tick();
+    var boxes = {}
+    boxes.div = d3.select("#boxes")
+      .selectAll("div.outer")
+      .data(data)
+      .enter()
+      .append("div")
+      .attr("id",d=>"box-"+d.id)
+      .style("display",d=>categories.find(x=>x.english_subcat == d.type).show ? " block" : " none")
+      .attr("class",d=>"outer "+d.type+" year-"+d.Year)
   
-  
-    //generate divs for each event / agreemnt
-    timeline = d3.select("#timeline").append("div").attr("class","items")
-  
-    function linkify(text) {
-      var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-      return text.replace(urlRegex, function(url) {
-          return '<a href="' + url + '">' + url + '</a>';
-      });
-  }
-
-
-  //horizontal lines + paths
-  function constructPath (d) {
-    var lineGenerator = d3.line().curve(d3.curveBasis);
-    var element = $('#item-'+d.id)
-    var y = (element.offset().top - $(window).scrollTop() + (element.height() / 2))
-    var start = [d.x, d.y]
-    //var center = [(d.x + ((element.offset().left  - d.x) / 2)),d.y]
-    var smooth1 = [180, d.y]
-    var smooth2 = [300, d.y]
-    var smooth3 = [element.offset().left-50, y]
-    var target = [element.offset().left, y]
-    return lineGenerator([start, smooth1, smooth2, smooth3, target])
-  }
-  
-  //construct overview + connectirs
-  barcode = svg.append("g").attr("class","barcode")//.attr("transform","translate(0,50)")
-  timespan = barcode.append("rect").attr("class","timespan").attr("x",0).attr("width",205).attr("pointer-events","none").attr("fill",d3.rgb(255,255,255,.05))
-
-  
-  function draw(data) {
-    items = timeline.selectAll("div").data(data)
-
-    item = items.enter()
-    .append("div").attr("class",d=>"year-"+d.Year).attr("id", d=> "item-"+d.id)
-    .append("div").attr("class",d => (d["Agreement/Event"] == "Event") ? "Event" : d.Stage )
-    .style("background",d => {
-      var col = d3.rgb(categories.find(x => x.english == d.type).color)
-      var opacity = (d["Agreement/Event"] == "Event") ? .2 : 0.4
-      return d3.rgb(col.r,col.g,col.b,opacity)
+    //add date, if same date, hide and loose margin
+    boxes.date = boxes.div.append("span")
+    .attr("class",(d,i)=> dateClass(d,i))
+    .text(d=>{
+      var start = formatTime(d.start)
+      var end = formatTime(d.end)
+      return (start == end) ? start : start + " – " + end
     })
 
-    item.append("span").attr("class","date").text(d => d.Day + "/" + d.Month + "/" + d.Year)
-    item.append("h4").text(d => d[languages[language].itemHeadline])
-    item.append("p").html(d => linkify(d[languages[language].itemText]))
+    //build box
+    var box = boxes.div.append("div").attr("class","inner")
+    var stage = box.append("p")
+      .attr("class",d=>(d.Stage == "") ? "d-none" : "stage "+d.Stage)
+      .text(d=> {
+        var str
+        if(d.Stage !== "") {
+          console.log(language)
+          str = stages.find(x=>x.english == d.Stage)[language]
+        } else {
+          str = ""
+        }
+        return str
+      })
+    box.append("h4")
+      .text(d => (language == "arabic") ? d["Headline Arabic"] : d["Headline"])
+    box.append("p")
+      .html(d => {
+        var paragraph = (language == "arabic") ? d["Text Arabic"] : d["Text"]
+        return linkify(paragraph)
+      })
+      return boxes;
+  }
+
+  //show headline and text in correct language
+  function drawIntro(){
+    d3.select(".intro h1").html(_=>{
+      var str
+      if(language == "arabic") {
+        str = "PA-X: نظرة عامة على الاتفاقات والصراعات اليمنية"
+      } else {
+        str = "PA-X: Yemen Timeline: Conflict Events & Peace and Transition Documents"
+      }
+    return str
+   })
+
+    d3.select(".intro p").html(_=> {
+      var str
+      if(language == "arabic") {
+        str = "الشهادات والآراء حول الصراعات غالباً ييتم الاختلاف عليها .وادناه ، نورد تسلسلاً زمنياً للصراع في اليمن واهم وثائق التحول والسلام . انظر ادناه واضغط لتختار ، وقف إطلاق النار ، ماقيل التفاوض، ومضامين  اطارات الاتفاقات الحزبية ، التنفيذ، أو الأحداث. ويمكن الحصول على النصوص الكاملة باستخدام الروابط. ويتم الوصول على التسلسل الزمني من PA -X قاعدة بيانات اتفاقات السلام"
+      } else {
+        str = "Accounts of conflicts are often contested. Below we set out a timeline of the Yemeni Conflict, and the main peace and transition documents todate. Scroll or click to choose Agreements (national),  Agreements (local), Events (political), or Events (violent). Full text of agreements can be accessed by using links. The timeline draws from the PA-X Peace Agreement Database."
+      }
+      return str
+    })
+  }
 
 
-    connectors = barcode.append("g").attr("class","connectors").selectAll("g").data(data)
-    connector = connectors.enter().append("g").attr("class","connector")
+  //recursive function to check whether a) the prior date is visible and b) check for same dates
+  function dateClass(d,i) {
+    function walkBack(steps) {
+      if(typeof data[i-steps] !== "undefined") {
+        if(categories.find(x=>x.english_subcat == data[i-steps].type).show) {
+          return (formatTime(data[i].start) == formatTime(data[i-steps].start)) ? "hideDate" : "showDate"
+        } else {
+          return walkBack(steps+1)
+        }
+      } else {
+        return "showDate first"
+      }
+    }
+    return "date "+walkBack(1)
+  }
+
+
+  //add id, parse start and end time and then sort by start
+  function parse(d) {
+    d.forEach((e,i)=>{
+      e.id = i;
+      e.start = parseTime(e.Day+"/"+e.Month+"/"+e.Year)
+      e.end = parseTime(e["End Day"]+"/"+e["End Month"]+"/"+e["End Year"])
+      e.type = (e.Event !== "") ? e.Event : e.Agreement
+    })
+    d.sort((a,b)=>a.start-b.start)
+    return d;
+  }
+
+
+  //add x and y to data
+    function computeBeeswarm(scales) {
+      var simulation = d3.forceSimulation(data)
+      .force("x", d3.forceX(d => scales.x(d.type)).strength(1))
+      .force("y", d3.forceY(d => scales.y(d.start)).strength(5))
+      .force("collide", d3.forceCollide(5))
+      .stop();
+      for (var i = 0; i < 60; ++i) simulation.tick();
+      return data;
+    }
+
+
+  //draw lines on the left
+  function drawLines(scales) {
+    var start = .5
+    var smooth1 = 6
+    var smooth2 = 6.5
+
+    var g = svg.append("g")
+      .attr("class","lines")
+      .selectAll("line")
+      .data(Object.values(categories))
+      .enter()
+
+    g.append("path")
+      .attr("class",d=>d.english_subcat)
+      .attr("stroke",d=>scales.color(d.english_subcat))
+      .attr("stroke-width",2)
+      .attr("fill","transparent")
+      .attr("d",(d,i)=> {
+        var step = getStep(categories)
+        var line = []
+        if(i % 2 == 0) {
+          line.push([scales.x(d.english_subcat),measure.top*start])
+          line.push([scales.x(d.english_subcat),measure.top*smooth1])
+        } else {
+          line.push([scales.x(d.english_subcat)-step+2,measure.top*start])
+          line.push([scales.x(d.english_subcat)-step+2,measure.top*smooth1])
+        }
+        line.push([scales.x(d.english_subcat),measure.top*smooth1])
+        line.push([scales.x(d.english_subcat),measure.top*smooth2])
+        return lineGenerator(line)
+      })
+
+    g.append("line")
+      .attr("class",d=>d.english_subcat)
+      .attr("x1",d=>scales.x(d.english_subcat))
+      .attr("x2",d=>scales.x(d.english_subcat))
+      .attr("y1",measure.top*smooth2) 
+      .attr("y2",measure.height-measure.bottom)
+      .attr("stroke",d=>scales.color(d.english_subcat))
+      .attr("stroke-width",2)
+      .attr("fill","transparent")
+  }
+
+  //show years next to lines & show timespan
+  function drawYears(scales) {
+    //dont leave out years with no events
+    var years = []
+    var extent = d3.extent(data, function(d) {return +d.Year})
+    for(var  i = extent[0]; i <= extent[1]; i++) years.push(i)
   
-    line = connector.append("path").attr("d", d => constructPath(d))
-      .attr("stroke",d => color(d.type))
-      .attr("fill-opacity",0)
-      .attr("class",d => d.type)
-      .attr("stroke-width",d => (d.type == "Event") ? 1 : 2)
-      .attr("stroke-opacity",d => (d.type == "Event") ? .3 : .5)
+    svg.append("g")
+      .attr("class","years")
+      .selectAll("text")
+      .data(years)
+      .enter()
+      .append("text")
+        .text(d => d)
+        .attr("y",d => scales.y(parseTime("01/01/"+d)) + 7)
+        .attr("x",20)
+        .on("click",function(d){
+          var year = d;
+          
+          //if this year does not exist, go to the first appearace of a later year
+          var element = []
+          while(!element.length) {
+            element = $(".year-"+year).first();
+            year++
+          }    
+      
+          $('html, body').animate({
+            scrollTop: (element.offset().top - 50) 
+          }, 1000);
+        })
+    
+  //draw element to highlight what time is covered on screen
+    var timespan = svg.append("rect")
+      .attr("class","timespan")
+      .attr("x",0)
+      .attr("width",measure.width*measure.ratio)
       .attr("pointer-events","none")
-      //.attr("stroke-opacity",.5)
+    resizeTimeSpan()
+    function resizeTimeSpan() {
+      var arr = getVisible();
 
-    circles = svg.append("g").attr("class","circles").selectAll("circle").data(data).enter().append("circle")
+      if(arr.length) {
+        //find the first and last boxes date, only take the first segment, remove spaces, parse it and add it to the array of visible dates
+        var start = scales.y(parseTime(arr[0].find(".date")[0].innerHTML.split("–")[0].replace(/\s+/g, ''))) - 20
+        var stop =  scales.y(parseTime(arr[arr.length-1].find(".date")[0].innerHTML.split("–")[0].replace(/\s+/g, ''))) - start + 20;
+        timespan.transition().duration(100).attr("y",start).attr("height",stop)
+      }
+      
+    }
+    $(window).scroll(function () {
+      resizeTimeSpan()
+    })
+  }
+
+
+  //get array of visible boxes;
+  function getVisible() {
+    var arr = []
+    $("#boxes .outer").each(function(){
+        var box = $(this)
+        if(box.inView() && (box.css("display") !== "none")) arr.push($(this))
+      })
+    return arr
+  }
+  
+
+  //draw connection lines 
+  function drawConnectors(scales) {
+    var connectors = svg.append("g")
+      .attr("class","connectors")
+      .selectAll("path")
+      .data(data)
+      .enter()
+      .append("path")
+      .attr("fill","transparent")
+      .attr("stroke",d=>scales.color(d.type))
+      .style("stroke-opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  .5 : 0)
+      moveConnectors(connectors);
+      $(window).scroll(function () {
+        moveConnectors(connectors);
+      })
+      return connectors;
+  }
+
+  //move connection lines to correct start/end
+  function moveConnectors(connectors) {
+    function constructPath (d) {
+      var element = $('#box-'+d.id)
+      var y = (element.offset().top - $(window).scrollTop() + (element.height() / 2))
+      var start = [d.x, d.y]
+      var smooth1 = [measure.width*measure.curve, d.y]
+      var smooth2 = [measure.width*(measure.curve+.1), d.y]
+      var smooth3 = [element.offset().left-70, y]
+      var target = [element.offset().left, y]
+      return lineGenerator([start, smooth1, smooth2, smooth3, target])
+    }
+    connectors.attr("d",d=>constructPath(d))
+  }
+
+  //draw checkboxes and toggle category visibility
+  function drawToggles(cats,circles, connectors, boxes) {
+    var container = svg.append("g")
+      .attr("class","toggles")
+      .selectAll("foreignObject")
+      .data(cats)
+      .enter()
+      .append('foreignObject')
+        .attr("x", (d,i) => (i == 0) ? measure.left + 10 : measure.left + getStep()*2 + 10)
+        .attr("y", measure.top)
+        .attr("width", 1)
+        .attr("height", 1)
+        .attr("overflow", "visible")
+        .append("xhtml:div")
+    container.append("h5").text(d=>{
+      var str
+      if (language == "arabic") {
+        str = (d == "Agreements") ? "اتفاقات" : "أحداث"
+      } else {
+        str = d
+      }
+      return str;
+    })
+    var div = container.append("form").selectAll("div")
+      .data(d=>categories.filter(x=>x.english_cat == d))
+      .enter()
+      .append("div")
+      .attr("class",d=>"custom-control custom-checkbox "+d.english_subcat)
+    div.append("input")
+      .attr("id",d=>d.english_subcat)
+      .attr("class","custom-control-input")
+      .attr("type","checkbox")
+      .property("checked",d=>d.show)
+      .on("change",d=>toggle(d,circles,connectors, boxes))
+    div.append("label")
+      .text(d=>d[language+"_subcat"])
+      .attr("for",d=>d.english_subcat)
+      .attr("class",d=>d.english_subcat+" custom-control-label")    
+  }
+
+  //toggle visibility of circles, connectors and boxes when checkbox is clicked
+  function toggle(category,circles,connectors, boxes) {
+    category.show = !category.show
+
+    boxes.div.style("display",d=> categories.find(x=>x.english_subcat == d.type).show ?  "block" : "none")
+    boxes.date.attr("class",(d,i)=> dateClass(d,i))
+    moveConnectors(connectors)
+    connectors.style("stroke-opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  .5 : 0)
+    circles.style("opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  1 : 0.2)
+  }
+
+  //draw circles according to their date and category
+  function drawCircles(beeswarm, scales){
+    var circles = svg.append("g").attr("class","circles").selectAll("circle").data(beeswarm).enter().append("circle")
     .attr("cx",d => d.x)
     .attr("class",d => d.type)
     .attr("cy",d => d.y)
-    .attr("fill",d => color(d.type))
-    //.attr("r", d => (d.type == "Event")? 2 : 3)
-    .attr("r", 3)
-    .style("opacity", 1)
+    .attr("fill",d => scales.color(d.type))
+    .attr("r", 4)
+    .attr("stroke-width", .5)
+    .attr("stroke", d3.rgb(0,0,0,.5))
+    .style("opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  1 : 0.2)
     .on("mouseover",function(d){
       d3.select(this).transition().duration(100).attr("r",7)
-      d3.select("#tooltip").style("opacity",0.8).html(d[languages[language].itemHeadline]).style("top",(d.y-5)+"px").style("left","200px")
+      d3.select("#tooltip")
+        .style("opacity",1)
+        .style("background-color",scales.color(d.type))
+        .html((language == "arabic") ? d["Headline Arabic"] : d["Headline"])
+        .style("top",(d.y- 10)+"px")
+        .style("left",(d.x+30)+"px")
     })
     .on("mouseout",function(){
       d3.select(this).transition().duration(100).attr("r",4)
@@ -185,157 +406,102 @@ d3.csv("en-ar-tab.csv", function(error, data) {
     })
     .on("click",function(d){
       $('html, body').animate({
-        scrollTop: $("#item-"+d.id).offset().top - d.y + ($("#item-"+d.id).height() / 2)
+        scrollTop: $("#box-"+d.id).offset().top - d.y + ($("#box-"+d.id).height() / 2)
       }, 750);
     })
-    resizeTimeSpan();
+    return circles;
+  }
+  
+  //bit overkill to write a function for this, but here we go
+  var getStep = function(){
+    return ((measure.width * measure.ratio - measure.left) / categories.length + 1)
   }
 
+  //convert links in actual links
+  function linkify(text) {
+    var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    return text.replace(urlRegex, function(url) {
+      return '<a target="_blank" href="' + url + '">' + url + '</a>';
+    });
+  }
 
-//check if elements are in view 
-$.fn.inView = function(){
+  //create scale for line/bubble position and colors
+  function createScales() {
+    var scales = {}
+    var domain = categories.map(x=>x.english_subcat)
+    var range = []
+    var step = getStep()
+    for(var i = measure.left; i <= measure.width * measure.ratio; i=i+step) {
+      range.push(i)
+    }
+    scales.y = d3.scaleTime()
+      .domain(d3.extent(data,d=>d.start))
+      .range([measure.top*7,measure.height-measure.bottom])
+    scales.x = d3.scaleOrdinal()
+      .domain(domain)
+      .range(range)
+    scales.color = d3.scaleOrdinal()
+      .domain(domain)
+      .range(categories.map(function(d){return d.color}))
+    return scales;
+  }
+
+  //check url for ?lang=arabic, set language accordingly
+  function setLanguage() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var lang = (urlParams.get('lang') == "arabic") ? "arabic" : "english"
+    d3.select("body").attr("class",lang)
+    //var direction = (lang == "arabic") ? "rtl" : "ltr"
+    //d3.select("html").attr("dir",direction)
+    return lang
+  }
+
+  function drawArrows() {
+  /* //get previous or next visibile box
+   function upDown(direction) {
+    var arr = getVisible()
+    if(arr.length) {
+      if(direction == "up") {
+        return walk(arr[0])
+      } else {
+        return walk(arr[arr.length-1])
+      }
+    }
+    //recursive function to walk up and down, recursion occurs when box is not visibleArea
+    function walk(start) {
+      var startID = start.attr("id").split("-")[1]
+      var id = (direction == "up") ? startID-- : startID++
+      var target = $("#box-"+id)
+      if(typeof target !== undefined) {
+        if(target.css("display") == "block") {
+          return target
+        } else {
+          return walk(id)
+        }
+      } else {
+        return start
+      }
+    }
+   }*/
+    
+    $(".arrow").click(function(){ 
+      var distance = ($(this).attr("id") == "up") ? -1 : 1
+      distance = distance * 200
+
+      $('html, body').animate({
+        scrollTop: $(window).scrollTop() + distance
+      }, 500);
+    })
+    
+    $(".arrow").css("left", $("#circles").width() + $("#boxes").width() / 2)
+  }
+
+  //expand jquery functionality to check whether box is in view or not
+  $.fn.inView = function(){
     var win = $(window);
     var scrollPosition = win.scrollTop();
     var visibleArea = win.scrollTop() + win.height();
     var objEndPos = ($(this).offset().top + $(this).outerHeight());
     return(visibleArea >= objEndPos && scrollPosition <= objEndPos ? true : false)
-};
-
-function resizeTimeSpan() {
-  var arr = []
-    $(".items div").each(function(){
-      if($(this).inView()) arr.push(parseTime($(this).find(".date")[0].innerHTML))
-    })
-    arr.sort(function(a,b){return a-b})
-    var start = y(arr[0]) - 20
-    var stop =  y(arr[arr.length-1]) - start + 20;
-    timespan.transition().duration(100).attr("y",start).attr("height",stop)
-}
-
-
-  var category = barcode.append("g").attr("class","categories").selectAll("line").data(categories).enter()
-
-  category.append("rect")
-  .attr("class",d=>d.english)
-  .attr("x",d => d.position)
-  .attr("y",(d,i) => 50 + i*20)
-  .attr("width",1)
-  .attr("height",height)
-  .attr("fill",d => d.color)
-  .attr("full-opacity",1)
-  .attr("stroke-width",5)
-  .attr("stroke-color","white")
-  .on("mousemove",(d,i) => {
-    //commentCircle.attr("transform","translate("+d.position+","+(d3.event.pageY - $(document).scrollTop())+")").style("opacity",1)
-  })
-  .on("mouseout",_=>{
-    //commentCircle.style("opacity",0)
-  })
-
-  /*var commentCircle = svg.append("g").attr("class","commentCircle").style("opacity",0).attr("pointer-events","none").attr("transform","translate(0,0)")
-  commentCircle.append("circle").attr("fill","white").attr("stroke","black").attr("r",12)//.attr("cx",commentLine.attr("x1"))
-  var addComment = commentCircle.append("text").text("+").style("font-size",20).style("font-weight","bold").attr("text-anchor","middle").attr("y",5)
-
-  commentCircle.attr("pointer-events","stroke").on("click", _ => {
-    d3.select("#form").transition().duration(100).style("opacity",1).style("top",(d3.event.pageY - $(document).scrollTop())+"px").style("left",(d3.event.pageX+15)+"px")
-    
-    date = formatTime(y.invert((d3.event.pageY - $(document).scrollTop())))
-    $("#date").val(date)
-  })
-
-  d3.select("#button-reset").on("click",_=>{
-    d3.select("#form").transition().duration(100).style("opacity",0) 
-  })*/
-
-
-  
-
-  svg.append("g").attr("class","filters").selectAll("text").data(categories).enter().append("text")
-  .text(d => d[language])
-  .attr("x",(d,i)=>45+i*30)
-  .attr("y",(d,i) => 55 + i*20)
-  .attr("fill",d => d.color)
-  .style("font-size","13pt")
-  .on("mouseover",function(d,i){d3.select(this).transition().duration(100).attr("x",50+i*30)})
-  .on("mouseout",function(d,i){d3.select(this).transition().duration(100).attr("x",45+i*30)})
-  .on("click",function(d){
-    if(d.bool) {
-      d3.select(this).transition().duration(100).style("opacity",0.5)
-    }else {
-      d3.select(this).transition().duration(100).style("opacity",1)
-    }
-    d.bool = !d.bool
-
-    var first = true
-    $("."+d.english).toggle("slow",function(){
-      if(first) {
-        move();
-        first = false
-      }
-    })
-  })
-
-  //years text
-  var years = []
-  var extent = d3.extent(data, function(d) {return +d.Year})
-  for(var  i = extent[0]; i <= extent[1]; i++) years.push(i)
-
-  barcode.append("g").attr("class","years").selectAll("text").data(years).enter().append("text").text(d => d)
-  .attr("y",d => y(parseTime("01/01/"+d)) + 7).attr("x",2).on("click",function(d){
-    var year = d;
-    
-    var element = []
-    while(!element.length) {
-      element = $(".year-"+year).first();
-      year++
-    }
-
-    $('html, body').animate({
-      scrollTop: (element.offset().top - 50)
-    }, 1000);
-  })
-
-  draw(data);
-
-
-  years.forEach(function(year){
-    $('.year-'+year).last().addClass("last")
-  })
-
-
-  $("#start").click(function(){
-    $('html, body').animate({
-      scrollTop: $(".items div").first().offset().top - 30
-    }, 500);
-  })
-
-  $("#next").click(function(){
-    $('html, body').animate({
-      scrollTop: $(window).scrollTop() + 400
-    }, 500);
-  })
-
-  $("#previous").click(function(){
-    $('html, body').animate({
-      scrollTop: $(window).scrollTop() -400
-    }, 500);
-  })
-
-  d3.selectAll("#previous, #next").style("left",function(){
-    return ($("#timeline").width() / 2) + $("#overview").width() + "px"
-  })
-
-  function move() {
-    line.data(data).each(function(d,i){
-        date = d3.select(this).attr("d",d=>constructPath(d))
-    })
-    resizeTimeSpan();
-  }
-
-  $(window).scroll(function () {
-    move();
-    $("#previous").show("slow");
-    
-  });
-});
+  };
 </script>

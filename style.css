@@ -1,168 +1,123 @@
   body { 
     background-color: #181818;
-  font-family: 'Karla', sans-serif;
-  color: #F4F4F4;
-}
-circle:hover {
-  stroke-width: 10px;
-}
-  .container {
-    width: 100%;
+    font-family: 'Karla', sans-serif;
+    color: #F4F4F4;
   }
 
-body a {
- // color: #FFFFFF;
-}
+  body.arabic {
+    text-align: right;
+  }
 
-#events {
-//  color: #fff;
-}
+  .arrow {
+    display: block;
+    position: fixed;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    opacity: .8;
+    background-color: #181818;
+    background-size: 20px 20px, cover;
+  }
 
-a:link {
-//  color: #fff;
-  text-decoration: underline;
-}
+  #up.arrow {
+    top: 20px;
+    background-image: url("img/up.svg");
+    background-repeat: no-repeat;
+    background-position:  5px 5px;
+  }
 
-body.arabic #timeline p, body.arabic #timeline h4, body.arabic #timeline .date {
-  text-align: right;
-  font-family: 'Amiri', sans-serif
-}
+  #down.arrow {
+    bottom: 20px;
+    background-image: url("img/down.svg");
+    background-repeat: no-repeat;
+    background-position:  5px 5px;
+  }
 
-body.english {
-  text-align: left;
-}
+  /* intro */
+  .intro {
+    padding: 100px 50px;
+    text-align: center;
+  }
 
-#overview {
-  position: fixed;
-  height: 100%;
-  width: 450px;
-  padding-left: 20px;
-}
+  .intro a {
+    color: #fff;
+  }
 
-a.arabic, a.english {
-  background: none !important;
-  padding: 0 !important;
-}
+  .intro h1 {
+    font-weight: bold;
+  }
 
-#tooltip {
-  position: fixed;
-  background: darkgrey;
-  padding: 2px 5px;
-  width: auto;
-  opacity: 0;
-  border-radius: 4px;
-  -webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
-  -moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
-  box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
-}
+  .intro span {
+    font-size: 0.8em
+  }
 
-.years text {
-  font-family: sans-serif;
-  fill: #F4F4F4;
-  font-size: 8pt;
-  
-}
+  /* circles */
+  #circles {
+    height: 100%;
+    position: fixed;
+  }
 
-.years text, .filters text, .circles circle {
-  cursor: pointer;
-}
+  rect.timespan {
+    fill: rgba(255,255,255,0.2);
+  }
 
-#timeline {
-  margin-left: 450px;
-  //color: white;
-  padding-top: 50px;
-  width: 800px;
-}
+  #tooltip {
+    position: fixed;
+    padding: 2px 5px;
+    overflow: hidden;
+    max-width: 250px;
+    line-height: 1.1em;
+    opacity: 0;
+    border-radius: 4px;
+    -webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+    box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
+  }
 
-#timeline .items div {
-  margin-bottom: 5px;
-}
-
-#timeline .items div div {
-  display: inline-block;
-  padding:10px;
-}
-
-span.date {
-  display: block;
-}
-
-.Event h4 {font-size: 2em; margin: 0; font-weight: 700;}
-.Event p {font-size: 1em; margin: 0;}
-
-#timeline div.intro {
-  background: rba(0,0,0,0) !important;
-  text-align: center;
-  width: 80%;
-  margin: 100px auto;
-  line-height: 1.5em;
-}
-
-#timeline div a {
-  background: rgba(255,255,255,.7);
-  color: #F4F4F4;
-  padding: 0 5px;
-}
-
-div.intro #start {
-  background: white;
-  padding: 2px 5px;
-  color: black !important;
-  font-weight: bold;
-  border-radius: 4px
-}
+  .years text {
+    fill: #F4F4F4;
+    font-size: .7em;
+    text-anchor: middle;
+    cursor: pointer;
+  }
 
 
+  /*toggles*/
+  .toggles {color: #F4F4F4;}
+  .custom-control-label, .custom-control-label {cursor: pointer;}
+  .custom-checkbox.local, .custom-checkbox.conflict  {margin-left: 5px;}
+  .custom-control-label:before{background-color:black;}
+  .custom-checkbox .custom-control-input:checked~.National.custom-control-label::before   {background-color: #B5B867;}
+  .custom-checkbox .custom-control-input:checked~.Local.custom-control-label::before      {background-color: #A23961;}
+  .custom-checkbox .custom-control-input:checked~.Political.custom-control-label::before  {background-color: #3E5A83;}
+  .custom-checkbox .custom-control-input:checked~.Conflict.custom-control-label::before   {background-color: #AC5A1F;}
 
-i#next {
-  bottom: 10px;
-  position: fixed;
-  left: 55%;
-  display: block;
-  padding: 10px;
-  font-size: 2em;
-  border-radius: 50px;
-  background: rgba(0,0,0,.5)
-}
+  /*boxes*/
+  #boxes h4 {font-weight: 700}
+  .inner {padding: 20px; border-top: 1px solid #181818;}
+  .showDate {padding-left: 20px; margin-top: 100px; display: block;}
+  .showDate.first {padding-left: 20px; margin-top: 0px; display: block;}
+  .hideDate {margin-top: 0px; display: none;}
+  a:link {color: white; text-decoration: underline}
 
-i#previous {
-  top: 10px;
-  position: fixed;
-  display: none;
-  padding: 10px;
-  font-size: 2em;
-  border-radius: 50px;
-  background: rgba(0,0,0,.5);
-}
+  .National .inner  {background-color: #B5B867;}
+  .Local .inner     {background-color: #A23961;}
+  .Political .inner {background-color: #3E5A83;}
+  .Conflict .inner  {background-color: #AC5A1F;}
+  .stage {
+    border-bottom: 1px dotted rgba(244,244,244,.4);
+    padding: 0 20px 10px 20px;
+    font-family: monospace;
+    font-size: .9em;
+    background-repeat: no-repeat;
+    background-size: 15px;
+    background-position: left
+  }
 
-i#next:hover, i#prev:hover  {
-  background: rgba(255,255,200,.5)
-  color: black;
-}
-
-.trigger {
-  position: fixed;
-  top: 10px;
-  left: 60px;
-  color: white;
-}
-
-.last {
-  margin-bottom: 150px !important;
-}
-
-.filters text {
--webkit-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
--moz-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
-box-shadow: 3px 3px 3px 0px rgba(0,0,0,0.75);
-}
-
-#form {
-  position: fixed;
-  padding: 10px;
-  opacity: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
-
-}
+  .arabic .stage {
+    background-position: right
+  }
+  p.stage.ceasefire           {background-image: url("img/ceasefire.svg");}
+  p.stage.prenegotiation      {background-image: url("img/prenegotiation.svg");}
+  p.stage.substantive-partial {background-image: url("img/substantive-partial.svg");}
+  p.stage.implementation      {background-image: url("img/implementation.svg");}
