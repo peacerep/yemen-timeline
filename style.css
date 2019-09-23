@@ -117,7 +117,7 @@
   .arabic .stage {
     background-position: right
   }
-  p.stage.ceasefire           {background-image: url("img/ceasefire.svg");}
-  p.stage.prenegotiation      {background-image: url("img/prenegotiation.svg");}
-  p.stage.substantive-partial {background-image: url("img/substantive-partial.svg");}
-  p.stage.implementation      {background-image: url("img/implementation.svg");}
+  p.stage.Ceasefire           {background-image: url("img/ceasefire.svg");}
+  p.stage.Prenegotiation      {background-image: url("img/prenegotiation.svg");}
+  p.stage.Substantive-Partial {background-image: url("img/substantive-partial.svg");}
+  p.stage.Implementation      {background-image: url("img/implementation.svg");}

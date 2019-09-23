@@ -52,10 +52,10 @@
   var language = setLanguage()
   var svg = d3.select("#circles").append("svg").attr("width",measure.width).attr("height",measure.height);
 
-
   //load data, parse and then init functions
-  d3.csv("en-ar-tab - rw final edits.csv", function(error, d) {
+  d3.csv("190819-en-ar-tab.csv", function(error, d) {
     if (error) throw error;
+    //d = d.filter((d,i)=> i<100)
     data = parse(d.filter(x=>x.Year !== ""));
     var scales = createScales();
     drawLines(scales); 
@@ -105,6 +105,11 @@
       .text(d=> {
         var str
         if(d.Stage !== "") {
+        //console.log(d.Stage)
+        //if(false) {
+          console.log(d.Stage)
+          console.log(stages)
+          console.log(stages.find(x=>x.english == d.Stage))
           str = stages.find(x=>x.english == d.Stage)[language]
         } else {
           str = ""
@@ -168,7 +173,9 @@
       e.id = i;
       e.start = parseTime(e.Day+"/"+e.Month+"/"+e.Year)
       e.end = parseTime(e["End Day"]+"/"+e["End Month"]+"/"+e["End Year"])
-      e.type = (e.Event !== "") ? e.Event : e.Agreement
+      e.type = (e.Event !== "") ? e.Event.replace(/\s+/g, '') : e.Agreement.replace(/\s+/g, '');
+      e.Stage = e.Stage.replace(/\s+/g, '');
+
     })
     d.sort((a,b)=>a.start-b.start)
     return d;
@@ -269,7 +276,7 @@
       .attr("pointer-events","none")
     resizeTimeSpan()
     function resizeTimeSpan() {
-      var arr = getVisible();
+      var arr = getBoxes().inView;
 
       if(arr.length) {
         //find the first and last boxes date, only take the first segment, remove spaces, parse it and add it to the array of visible dates
@@ -286,14 +293,18 @@
 
 
   //get array of visible boxes;
-  function getVisible() {
-    var arr = []
+  function getBoxes() {
+    var obj = {}
+    obj.visible = []
+    obj.inView = []
     $("#boxes .outer").each(function(){
         var box = $(this)
-        if(box.inView() && (box.css("display") !== "none")) arr.push($(this))
+        if(box.css("display") !== "none") obj.visible.push($(this))
+        if(box.inView() && (box.css("display") !== "none")) obj.inView.push($(this))
       })
-    return arr
+    return obj
   }
+
   
 
   //draw connection lines 
@@ -457,40 +468,29 @@
   }
 
   function drawArrows() {
-  /* //get previous or next visibile box
-   function upDown(direction) {
-    var arr = getVisible()
-    if(arr.length) {
-      if(direction == "up") {
-        return walk(arr[0])
-      } else {
-        return walk(arr[arr.length-1])
-      }
-    }
-    //recursive function to walk up and down, recursion occurs when box is not visibleArea
-    function walk(start) {
-      var startID = start.attr("id").split("-")[1]
-      var id = (direction == "up") ? startID-- : startID++
-      var target = $("#box-"+id)
-      if(typeof target !== undefined) {
-        if(target.css("display") == "block") {
-          return target
-        } else {
-          return walk(id)
-        }
-      } else {
-        return start
-      }
-    }
-   }*/
-    
     $(".arrow").click(function(){ 
-      var distance = ($(this).attr("id") == "up") ? -1 : 1
-      distance = distance * 200
+      var visible = getBoxes().visible.map(d=>d.prop("id"))
+      var inView = getBoxes().inView.map(d=>d.prop("id"))
 
-      $('html, body').animate({
-        scrollTop: $(window).scrollTop() + distance
-      }, 500);
+      var target;
+      if($(this).attr("id") == "up") {
+        var first = inView[0]
+        target = visible[visible.indexOf(first)-1] 
+      } else {
+        var last = inView[inView.length-1]
+        console.log(inView, last)
+        target = visible[visible.indexOf(last)+1]
+      }
+
+
+      console.log(target)
+
+      if(target) {
+        $('html, body').animate({scrollTop: $("#"+target).offset().top}, 500)
+      } else {
+        var distance = ($(this).attr("id") == "up") ? -200 : 200
+        $('html, body').animate({scrollTop: $(window).scrollTop() + distance}, 500);
+      }
     })
     
     $(".arrow").css("left", $("#circles").width() + $("#boxes").width() / 2)
