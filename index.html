@@ -131,9 +131,6 @@
         if(d.Stage !== "") {
         //console.log(d.Stage)
         //if(false) {
-          console.log(d.Stage)
-          console.log(stages)
-          console.log(stages.find(x=>x.english == d.Stage))
           str = stages.find(x=>x.english == d.Stage)[language]
         } else {
           str = ""
@@ -502,12 +499,9 @@
         target = visible[visible.indexOf(first)-1] 
       } else {
         var last = inView[inView.length-1]
-        console.log(inView, last)
         target = visible[visible.indexOf(last)+1]
       }
 
-
-      console.log(target)
 
       if(target) {
         $('html, body').animate({scrollTop: $("#"+target).offset().top}, 500)
