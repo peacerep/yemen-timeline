@@ -35,10 +35,34 @@
   var formatTime = d3.timeFormat("%d/%m/%Y");
   var data;
   var categories = [
-    {english_cat: "Agreements",english_subcat: "National",arabic_cat: "اتفاقات",arabic_subcat: "وطنية", color: d3.rgb("#B5B867"), show: true},
-    {english_cat: "Agreements",english_subcat: "Local",arabic_cat: "اتفاقات",arabic_subcat: "محلية", color: d3.rgb("#A23961"), show: true},
-    {english_cat: "Events",english_subcat: "Political",arabic_cat: "أحداث",arabic_subcat: "سياسية", color: d3.rgb("#3E5A83"), show: true},
-    {english_cat: "Events",english_subcat: "Conflict",arabic_cat: "أحداث",arabic_subcat: "عنيفة", color: d3.rgb("#AC5A1F"), show: true},
+    {
+      english_cat: "Agreements",
+      english_subcat: "National",
+      arabic_cat: "اتفاق",
+      arabic_subcat: "وطني",
+      color: d3.rgb("#B5B867"),
+      show: true
+    },{
+      english_cat: "Agreements",
+      english_subcat: "Local",
+      arabic_cat: "اتفاقات",
+      arabic_subcat: "محلي",
+      color: d3.rgb("#A23961"),
+      show: true
+    },{
+      english_cat: "Events",
+      english_subcat: "Political",
+      arabic_cat: "حدث",
+      arabic_subcat: "سياسي",
+      color: d3.rgb("#3E5A83"),
+      show: true
+    },{
+      english_cat: "Events",
+      english_subcat: "Conflict",
+      arabic_cat: "حدث",
+      arabic_subcat: "نزاع",
+      color: d3.rgb("#AC5A1F"),
+      show: true},
   ]
   var measure = {
     "width": d3.select("#circles").node().getBoundingClientRect().width,
@@ -74,9 +98,9 @@
   function drawBoxes(scales) {
     var stages = [
       {"english": "Ceasefire", "arabic": "وقف إطلاق النار"},
-      {"english": "Prenegotiation", "arabic": "Prenegotiation"}, //TODO: translate prenegotiation and verify all translations
-      {"english": "Substantive-Partial", "arabic": "الأسماء-الجزئية"},
-      {"english": "Implementation", "arabic": "تطبيق"}
+      {"english": "Prenegotiation", "arabic": "ما قبل الحوار"}, //TODO: translate prenegotiation and verify all translations
+      {"english": "Substantive-Partial", "arabic": "موضوعي – جزئي"},
+      {"english": "Implementation", "arabic": "التنفيذ"}
     ]
 
     var boxes = {}
