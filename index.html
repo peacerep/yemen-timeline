@@ -77,9 +77,9 @@
   var svg = d3.select("#circles").append("svg").attr("width",measure.width).attr("height",measure.height);
 
   //load data, parse and then init functions
-  d3.csv("190819-en-ar-tab.csv", function(error, d) {
+  //d3.csv("190819-en-ar-tab.csv", function(error, d) {
+  d3.csv("200407-en-ar-tab.csv", function(error, d) {
     if (error) throw error;
-    //d = d.filter((d,i)=> i<100)
     data = parse(d.filter(x=>x.Year !== ""));
     var scales = createScales();
     drawLines(scales); 
@@ -110,7 +110,7 @@
       .enter()
       .append("div")
       .attr("id",d=>"box-"+d.id)
-      .style("display",d=>categories.find(x=>x.english_subcat == d.type).show ? " block" : " none")
+      .style("display",(d,i)=>categories.find(x=>x.english_subcat == d.type).show ? " block" : " none")
       .attr("class",d=>"outer "+d.type+" year-"+d.Year)
   
     //add date, if same date, hide and loose margin
@@ -129,8 +129,6 @@
       .text(d=> {
         var str
         if(d.Stage !== "") {
-        //console.log(d.Stage)
-        //if(false) {
           str = stages.find(x=>x.english == d.Stage)[language]
         } else {
           str = ""
