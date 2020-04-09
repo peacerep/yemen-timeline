@@ -94,7 +94,7 @@
 
   /*boxes*/
   #boxes h4 {font-weight: 700}
-  .inner {padding: 20px; border-top: 1px solid #181818;}
+  .inner {padding: 20px; border-top: 1px solid #181818; position: relative; overflow: hidden;}
   .showDate {padding-left: 20px; margin-top: 100px; display: block;}
   .showDate.first {padding-left: 20px; margin-top: 0px; display: block;}
   .hideDate {margin-top: 0px; display: none;}
@@ -122,3 +122,25 @@
   p.stage.Prenegotiation      {background-image: url("img/prenegotiation.svg");}
   p.stage.Substantive-Partial {background-image: url("img/substantive-partial.svg");}
   p.stage.Implementation      {background-image: url("img/implementation.svg");}
+
+  .flag {
+  width: 180px;
+  background: #e43;
+  position: absolute;
+  top: 15px;
+  right: -60px;
+  text-align: center;
+  line-height: 30px;
+  color: #f0f0f0;
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+  }
+
+  .flag span {
+    position: absolute;
+    background:red;
+    -webkit-transform-origin: 100% 0;
+    transform-origin: 100% 0;
+    -webkit-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+  }

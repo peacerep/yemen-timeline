@@ -78,7 +78,7 @@
 
   //load data, parse and then init functions
   //d3.csv("190819-en-ar-tab.csv", function(error, d) {
-  d3.csv("200407-en-ar-tab.csv", function(error, d) {
+  d3.csv("200409-en-ar-tab.csv", function(error, d) {
     if (error) throw error;
     data = parse(d.filter(x=>x.Year !== ""));
     var scales = createScales();
@@ -110,7 +110,11 @@
       .enter()
       .append("div")
       .attr("id",d=>"box-"+d.id)
-      .style("display",(d,i)=>categories.find(x=>x.english_subcat == d.type).show ? " block" : " none")
+      .style("display",(d,i)=>{
+       categories.find(x=>{
+        return x.english_subcat == d.type
+       }).show ? " block" : " none" 
+      })
       .attr("class",d=>"outer "+d.type+" year-"+d.Year)
   
     //add date, if same date, hide and loose margin
@@ -122,8 +126,14 @@
       return (start == end) ? start : start + " – " + end
     })
 
+
     //build box
     var box = boxes.div.append("div").attr("class","inner")
+    box.append("div")
+      .attr("class","flag")
+      .text(d=> d.Sticky ? d.Agreement : "")
+      .style("background-color",d=> d.Sticky ? scales.color(d.Agreement) : "")
+      .attr("display",d=> d.Sticky ? "block" : "none")
     var stage = box.append("p")
       .attr("class",d=>(d.Stage == "") ? "d-none" : "stage "+d.Stage)
       .text(d=> {
@@ -135,6 +145,7 @@
         }
         return str
       })
+
     box.append("h4")
       .text(d => (language == "arabic") ? d["Headline Arabic"] : d["Headline"])
     box.append("p")
@@ -173,7 +184,9 @@
   function dateClass(d,i) {
     function walkBack(steps) {
       if(typeof data[i-steps] !== "undefined") {
-        if(categories.find(x=>x.english_subcat == data[i-steps].type).show) {
+           //categories.find(x=>x.english_subcat == d.type).show || d.Sticky ?  "block" : "none"
+           console.log()
+        if(categories.find(x=>x.english_subcat == data[i-steps].type).show || data[i-steps].Sticky) {
           return (formatTime(data[i].start) == formatTime(data[i-steps].start)) ? "hideDate" : "showDate"
         } else {
           return walkBack(steps+1)
@@ -403,11 +416,11 @@
   function toggle(category,circles,connectors, boxes) {
     category.show = !category.show
 
-    boxes.div.style("display",d=> categories.find(x=>x.english_subcat == d.type).show ?  "block" : "none")
+    boxes.div.style("display",d=>categories.find(x=>x.english_subcat == d.type).show || d.Sticky ?  "block" : "none")
     boxes.date.attr("class",(d,i)=> dateClass(d,i))
     moveConnectors(connectors)
-    connectors.style("stroke-opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  .5 : 0)
-    circles.style("opacity", d=> categories.find(x=>x.english_subcat == d.type).show ?  1 : 0.2)
+    connectors.style("stroke-opacity", d=> categories.find(x=>x.english_subcat == d.type).show|| d.Sticky ?  .5 : 0)
+    circles.style("opacity", d=> categories.find(x=>x.english_subcat == d.type).show|| d.Sticky ?  1 : 0.2)
   }
 
   //draw circles according to their date and category
