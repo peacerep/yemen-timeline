@@ -5,6 +5,7 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css?family=Karla:400,700&display=swap&subset=arabic" rel="stylesheet">
+<script src="https://apis.google.com/js/api.js"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 <div class="container-fluid">
@@ -26,9 +27,6 @@
 
 <script>
   'use strict';
-
-
-
   //initialize some global elements / functions
   var lineGenerator = d3.line().curve(d3.curveBasis);
   var parseTime = d3.timeParse("%d/%m/%Y")
@@ -76,13 +74,13 @@
   var language = setLanguage()
   var svg = d3.select("#circles").append("svg").attr("width",measure.width).attr("height",measure.height);
 
-  //load data, parse and then init functions
-  //d3.csv("190819-en-ar-tab.csv", function(error, d) {
-  d3.csv("200409-en-ar-tab.csv", function(error, d) {
+
+
+  d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRk8JTShT0PFKcdqNSJOLTMZ4bSQpDqEQ5ukYkgDejuoLLEHLjPOXd3xhLrAfXwhNOYSOX4RnNn3xhq/pub?output=csv", function(error, d) {
     if (error) throw error;
     data = parse(d.filter(x=>x.Year !== ""));
     var scales = createScales();
-    drawLines(scales); 
+    drawLines(scales);
     var beeswarm = computeBeeswarm(scales);
     drawIntro();
     var boxes = drawBoxes(scales);
@@ -92,6 +90,8 @@
     drawToggles(["Agreements","Events"], circles, connectors, boxes);
     drawArrows()
   })
+
+
 
 
   //draw boxes on right side
@@ -113,10 +113,10 @@
       .style("display",(d,i)=>{
        categories.find(x=>{
         return x.english_subcat == d.type
-       }).show ? " block" : " none" 
+       }).show ? " block" : " none"
       })
       .attr("class",d=>"outer "+d.type+" year-"+d.Year)
-  
+
     //add date, if same date, hide and loose margin
     boxes.date = boxes.div.append("span")
     .attr("class",(d,i)=> dateClass(d,i))
@@ -262,7 +262,7 @@
       .attr("class",d=>d.english_subcat)
       .attr("x1",d=>scales.x(d.english_subcat))
       .attr("x2",d=>scales.x(d.english_subcat))
-      .attr("y1",measure.top*smooth2) 
+      .attr("y1",measure.top*smooth2)
       .attr("y2",measure.height-measure.bottom)
       .attr("stroke",d=>scales.color(d.english_subcat))
       .attr("stroke-width",2)
@@ -275,7 +275,7 @@
     var years = []
     var extent = d3.extent(data, function(d) {return +d.Year})
     for(var  i = extent[0]; i <= extent[1]; i++) years.push(i)
-  
+
     svg.append("g")
       .attr("class","years")
       .selectAll("text")
@@ -287,19 +287,19 @@
         .attr("x",20)
         .on("click",function(d){
           var year = d;
-          
+
           //if this year does not exist, go to the first appearace of a later year
           var element = []
           while(!element.length) {
             element = $(".year-"+year).first();
             year++
-          }    
-      
+          }
+
           $('html, body').animate({
-            scrollTop: (element.offset().top - 50) 
+            scrollTop: (element.offset().top - 50)
           }, 1000);
         })
-    
+
   //draw element to highlight what time is covered on screen
     var timespan = svg.append("rect")
       .attr("class","timespan")
@@ -316,7 +316,7 @@
         var stop =  scales.y(parseTime(arr[arr.length-1].find(".date")[0].innerHTML.split("–")[0].replace(/\s+/g, ''))) - start + 20;
         timespan.transition().duration(100).attr("y",start).attr("height",stop)
       }
-      
+
     }
     $(window).scroll(function () {
       resizeTimeSpan()
@@ -337,9 +337,9 @@
     return obj
   }
 
-  
 
-  //draw connection lines 
+
+  //draw connection lines
   function drawConnectors(scales) {
     var connectors = svg.append("g")
       .attr("class","connectors")
@@ -409,7 +409,7 @@
     div.append("label")
       .text(d=>d[language+"_subcat"])
       .attr("for",d=>d.english_subcat)
-      .attr("class",d=>d.english_subcat+" custom-control-label")    
+      .attr("class",d=>d.english_subcat+" custom-control-label")
   }
 
   //toggle visibility of circles, connectors and boxes when checkbox is clicked
@@ -454,7 +454,7 @@
     })
     return circles;
   }
-  
+
   //bit overkill to write a function for this, but here we go
   var getStep = function(){
     return ((measure.width * measure.ratio - measure.left) / categories.length + 1)
@@ -500,14 +500,14 @@
   }
 
   function drawArrows() {
-    $(".arrow").click(function(){ 
+    $(".arrow").click(function(){
       var visible = getBoxes().visible.map(d=>d.prop("id"))
       var inView = getBoxes().inView.map(d=>d.prop("id"))
 
       var target;
       if($(this).attr("id") == "up") {
         var first = inView[0]
-        target = visible[visible.indexOf(first)-1] 
+        target = visible[visible.indexOf(first)-1]
       } else {
         var last = inView[inView.length-1]
         target = visible[visible.indexOf(last)+1]
@@ -521,7 +521,7 @@
         $('html, body').animate({scrollTop: $(window).scrollTop() + distance}, 500);
       }
     })
-    
+
     $(".arrow").css("left", $("#circles").width() + $("#boxes").width() / 2)
   }
 
